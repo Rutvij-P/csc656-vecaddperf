@@ -15,7 +15,7 @@ __global__ void add(int n, float* x, float* y)
 
 int main()
 {
-    int N = 1 << 20; // 1M elements
+    int N = 1 << 26; // 6M elements
     float* x, *y;
 
     cudaMallocManaged(&x, N * sizeof(float));
@@ -32,7 +32,9 @@ int main()
     cudaMemPrefetchAsync((void*)x, N * sizeof(float), deviceID);
     cudaMemPrefetchAsync((void*)y, N * sizeof(float), deviceID);
 
-    add<<<1, 1>>>(N, x, y);
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    add<<<blocksPerGrid, threadsPerBlock>>>(N, x, y);
 
     // Wait for GPU to finish
     cudaDeviceSynchronize();
